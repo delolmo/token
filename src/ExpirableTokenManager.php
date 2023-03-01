@@ -8,7 +8,7 @@ use DelOlmo\Token\Encoder\Encoder;
 use DelOlmo\Token\Generator\Generator;
 use DelOlmo\Token\Storage\Storage;
 
-final class ExpirableTokenManager implements Manager
+final class ExpirableTokenManager implements TokenManager
 {
     public function __construct(
         private readonly Encoder $encoder,
