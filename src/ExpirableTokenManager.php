@@ -17,59 +17,34 @@ final class ExpirableTokenManager implements Manager
     ) {
     }
 
-    public function decode(string $value): string
+    public function getEncoder(): Encoder
     {
-        return $this->encoder->decode($value);
+        return $this->encoder;
     }
 
-    public function encode(string $value): string
+    public function getGenerator(): Generator
     {
-        return $this->encoder->encode($value);
+        return $this->generator;
     }
 
-    public function verify(string $input, string $value): bool
+    public function getStorage(): Storage
     {
-        return $this->encoder->verify($input, $value);
-    }
-
-    public function generate(): string
-    {
-        return $this->generator->generate();
+        return $this->storage;
     }
 
     public function isValid(string $id, string $input): bool
     {
-        if (! $this->has($id)) {
+        if (! $this->getStorage()->has($id)) {
             return false;
         }
 
-        $token = $this->find($id);
+        $token = $this->getStorage()->find($id);
 
         if (! $token instanceof ExpirableToken) {
             return false;
         }
 
-        return $this->verify($input, $token->getValue()) &&
+        return $this->getEncoder()->verify($input, $token->getValue()) &&
             $token->isExpired() === false;
-    }
-
-    public function find(string $id): Token|null
-    {
-        return $this->storage->find($id);
-    }
-
-    public function has(string $id): bool
-    {
-        return $this->storage->has($id);
-    }
-
-    public function persist(Token $token): void
-    {
-        $this->storage->persist($token);
-    }
-
-    public function remove(string $id): void
-    {
-        $this->storage->remove($id);
     }
 }
