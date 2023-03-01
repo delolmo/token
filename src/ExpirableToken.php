@@ -40,4 +40,19 @@ final class ExpirableToken implements Token
 
         return $when > $this->expiresAt;
     }
+
+    public function withExpiresAt(DateTimeImmutable|null $expiresAt): static
+    {
+        return new self($this->id, $this->value, $expiresAt);
+    }
+
+    public function withId(string $id): static
+    {
+        return new self($id, $this->value, $this->expiresAt);
+    }
+
+    public function withValue(string $value): static
+    {
+        return new self($this->id, $value, $this->expiresAt);
+    }
 }

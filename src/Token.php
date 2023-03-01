@@ -15,4 +15,10 @@ interface Token
     public function getValue(): string;
 
     public function isExpired(): bool;
+
+    public function withExpiresAt(DateTimeImmutable|null $expiresAt): static;
+
+    public function withId(string $id): static;
+
+    public function withValue(string $value): static;
 }

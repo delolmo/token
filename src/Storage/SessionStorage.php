@@ -15,9 +15,16 @@ use function session_status;
 
 use const PHP_SESSION_NONE;
 
+/**
+ * @template T of Token
+ * @implements Storage<T>
+ */
 class SessionStorage implements Storage
 {
-    /** @param non-empty-string $namespace */
+    /**
+     * @param non-empty-string $namespace
+     * @param Serializer<T>    $serializer
+     */
     public function __construct(
         private readonly string $namespace,
         private readonly Serializer $serializer,

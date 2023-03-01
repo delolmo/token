@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace DelOlmo\Token;
 
-use DateTimeImmutable;
 use DelOlmo\Token\Encoder\Encoder;
 use DelOlmo\Token\Generator\Generator;
 use DelOlmo\Token\Storage\Storage;
 
+/**
+ * @template T of ExpirableToken
+ * @implements TokenManager<T>
+ */
 final class ExpirableTokenManager implements TokenManager
 {
+    /** @param Storage<T> $storage */
     public function __construct(
         private readonly Encoder $encoder,
         private readonly Generator $generator,
@@ -18,20 +22,14 @@ final class ExpirableTokenManager implements TokenManager
     ) {
     }
 
-    public function create(string $id, DateTimeImmutable $expiresAt): Token
-    {
-        $value = $this->generator->generate();
-
-        $token = new ExpirableToken($id, $value, $expiresAt);
-
-        $this->persist($token);
-
-        return $token;
-    }
-
     public function find(string $id): Token|null
     {
         return $this->storage->find($id);
+    }
+
+    public function getGenerator(): Generator
+    {
+        return $this->generator;
     }
 
     public function has(string $id): bool
@@ -41,10 +39,8 @@ final class ExpirableTokenManager implements TokenManager
 
     public function persist(Token $token): void
     {
-        $token = new ExpirableToken(
-            $token->getId(),
+        $token = $token->withValue(
             $this->encoder->encode($token->getValue()),
-            $token->expiresAt(),
         );
 
         $this->storage->persist($token);
