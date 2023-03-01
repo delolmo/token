@@ -17,6 +17,11 @@ final class ExpirableTokenManager implements TokenManager
     ) {
     }
 
+    public function find(string $id): Token|null
+    {
+        return $this->storage->find($id);
+    }
+
     public function getEncoder(): Encoder
     {
         return $this->encoder;
@@ -27,18 +32,34 @@ final class ExpirableTokenManager implements TokenManager
         return $this->generator;
     }
 
-    public function getStorage(): Storage
+    public function has(string $id): bool
     {
-        return $this->storage;
+        return $this->storage->has($id);
+    }
+
+    public function persist(Token $token): void
+    {
+        $token = new ExpirableToken(
+            $token->getId(),
+            $this->getEncoder()->encode($token->getValue()),
+            $token->expiresAt(),
+        );
+
+        $this->storage->persist($token);
+    }
+
+    public function remove(string $id): void
+    {
+        $this->storage->remove($id);
     }
 
     public function isValid(string $id, string $input): bool
     {
-        if (! $this->getStorage()->has($id)) {
+        if (! $this->storage->has($id)) {
             return false;
         }
 
-        $token = $this->getStorage()->find($id);
+        $token = $this->storage->find($id);
 
         if (! $token instanceof ExpirableToken) {
             return false;
