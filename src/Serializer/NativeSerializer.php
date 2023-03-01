@@ -7,8 +7,8 @@ namespace DelOlmo\Token\Serializer;
 use DelOlmo\Token\Token;
 use ErrorException;
 
+use function is_a;
 use function is_object;
-use function is_subclass_of;
 use function serialize;
 use function sprintf;
 use function unserialize;
@@ -41,7 +41,7 @@ class NativeSerializer implements Serializer
             ));
         }
 
-        if (! is_subclass_of($unserialized, $this->className)) {
+        if (! is_a($unserialized, $this->className)) {
             throw new ErrorException(sprintf(
                 'The passed string\'%s\' is not unserializeable.',
                 $serialized,
