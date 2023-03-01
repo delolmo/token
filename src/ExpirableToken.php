@@ -30,7 +30,7 @@ final class ExpirableToken implements Token
         return $this->value;
     }
 
-    public function isExpired(DateTimeImmutable $when): bool
+    public function isExpired(DateTimeImmutable|null $when = null): bool
     {
         if ($this->expiresAt === null) {
             return false;

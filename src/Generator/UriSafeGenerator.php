@@ -11,6 +11,7 @@ use function strtr;
 
 class UriSafeGenerator implements Generator
 {
+    /** @param int<1, max> $entropy */
     public function __construct(
         private readonly int $entropy = 64,
     ) {

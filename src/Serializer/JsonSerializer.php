@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace DelOlmo\Token\Serializer;
 
-use DateTime;
+use CuyZ\Valinor\Mapper\MappingError;
+use CuyZ\Valinor\Mapper\Source\Source;
+use CuyZ\Valinor\MapperBuilder;
+use DateTimeImmutable;
+use DelOlmo\Token\ExpirableToken;
 use DelOlmo\Token\Token;
+use Exception;
 
-use function json_decode;
 use function json_encode;
+use function sprintf;
 
+use const DATE_ATOM;
 use const JSON_THROW_ON_ERROR;
 
 class JsonSerializer implements Serializer
@@ -19,20 +25,27 @@ class JsonSerializer implements Serializer
         $data = [
             'id' => $token->getId(),
             'value' => $token->getValue(),
-            'expiresAt' => $token->expiresAt()->format('Y-m-d H:i:s'),
+            'expiresAt' => $token->expiresAt()?->format(DateTimeImmutable::ATOM),
         ];
 
         return json_encode($data, JSON_THROW_ON_ERROR);
     }
 
-    public function unserialize(string $json): Token
+    public function unserialize(string $serialized): Token
     {
-        $decoded = json_decode($json, true, JSON_THROW_ON_ERROR);
+        try {
+            $token = (new MapperBuilder())
+                ->supportDateFormats(DATE_ATOM)
+                ->mapper()
+                ->map(ExpirableToken::class, Source::json($serialized));
+        } catch (MappingError $error) {
+            throw new Exception(
+                sprintf('Unable to unserialize string \'%s\'.', $serialized),
+                $error->getCode(),
+                $error,
+            );
+        }
 
-        return new ExpirableToken(
-            $decoded['id'],
-            $decoded['value'],
-            DateTime::createFromFormat('Y-m-d H:i:s', $decoded['expiresAt']),
-        );
+        return $token;
     }
 }

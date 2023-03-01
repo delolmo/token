@@ -7,6 +7,9 @@ namespace DelOlmo\Token\Storage;
 use DelOlmo\Token\Serializer\Serializer;
 use DelOlmo\Token\Token;
 
+use function assert;
+use function is_array;
+use function is_string;
 use function session_start;
 use function session_status;
 
@@ -14,69 +17,64 @@ use const PHP_SESSION_NONE;
 
 class SessionStorage implements Storage
 {
-    private bool $sessionHasStarted = false;
-
+    /** @param non-empty-string $namespace */
     public function __construct(
         private readonly string $namespace,
         private readonly Serializer $serializer,
     ) {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (
+            isset($_SESSION[$this->namespace]) &&
+            is_array($_SESSION[$this->namespace])
+        ) {
+            return;
+        }
+
+        $_SESSION[$this->namespace] = [];
     }
 
     public function find(string $id): Token|null
     {
-        if ($this->sessionHasStarted === false) {
-            $this->startSession();
-        }
-
         if (! $this->has($id)) {
             return null;
         }
 
-        $serialized = $_SESSION[$this->namespace][$id];
+        $serialized = $_SESSION[$this->namespace][$id] ?? null;
 
-        return $this->getSerializer()->unserialize($serialized);
-    }
+        if (! is_string($serialized)) {
+            unset($_SESSION[$this->namespace]);
 
-    public function getSerializer(): Serializer
-    {
-        return $this->serializer;
+            return null;
+        }
+
+        return $this->serializer->unserialize($serialized);
     }
 
     public function persist(Token $token): void
     {
-        if ($this->sessionHasStarted === false) {
-            $this->startSession();
-        }
+        $serialized = $this->serializer->serialize($token);
 
-        $serialized = $this->getSerializer()->serialize($token);
+        $id = $token->getId();
 
-        $_SESSION[$this->namespace][$token->getId()] = $serialized;
+        assert(is_array($_SESSION[$this->namespace]));
+
+        $_SESSION[$this->namespace][$id] = $serialized;
     }
 
     public function has(string $id): bool
     {
-        if ($this->sessionHasStarted === false) {
-            $this->startSession();
-        }
+        assert(is_array($_SESSION[$this->namespace]));
 
         return isset($_SESSION[$this->namespace][$id]);
     }
 
     public function remove(string $id): void
     {
-        if ($this->sessionHasStarted === false) {
-            $this->startSession();
-        }
+        assert(is_array($_SESSION[$this->namespace]));
 
         unset($_SESSION[$this->namespace][$id]);
-    }
-
-    private function startSession(): void
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $this->sessionHasStarted = true;
     }
 }

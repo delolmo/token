@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace DelOlmo\Token\Encoder;
 
-use ErrorException;
-
-use function is_string;
 use function password_hash;
 use function password_verify;
 
@@ -21,13 +18,7 @@ class NativePasswordEncoder implements Encoder
 
     public function encode(string $value): string
     {
-        $hash = password_hash($value, PASSWORD_DEFAULT);
-
-        if (! is_string($hash)) {
-            throw new ErrorException();
-        }
-
-        return $hash;
+        return password_hash($value, PASSWORD_DEFAULT);
     }
 
     public function verify(string $input, string $value): bool

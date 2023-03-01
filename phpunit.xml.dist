@@ -22,7 +22,4 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
-    <extensions>
-        <extension class="DelOlmoPro\BypassFinalsHook"/>
-    </extensions>
 </phpunit>

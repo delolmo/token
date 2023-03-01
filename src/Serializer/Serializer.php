@@ -10,5 +10,5 @@ interface Serializer
 {
     public function serialize(Token $token): string;
 
-    public function unserialize(string $serialize): Token;
+    public function unserialize(string $serialized): Token;
 }
